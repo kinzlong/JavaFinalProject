@@ -110,15 +110,15 @@ public class Sequence {
         List<String> stop_codons = Arrays.asList("UAA", "UAG", "UGA");
         
         //remove 5' UTR
-        int index = sequence.indexOf(start_codon);
+        int index = mrna_transcript.indexOf(start_codon);
         if (index != -1) {
             mrna_transcript = mrna_transcript.substring(index);
         } else {
-            return "";
+            return "Error: No Start Codon Found.";
         }
 
-        for (int i = 0; i <= sequence.length() - 3; i += 3) {
-            String codon = sequence.substring(i, i + 3);
+        for (int i = 0; i <= mrna_transcript.length() - 3; i += 3) {
+            String codon = mrna_transcript.substring(i, i + 3);
             if (stop_codons.contains(codon)){
                 return orf.toString();
             }

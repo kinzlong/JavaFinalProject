@@ -2,6 +2,7 @@ package FinalProject;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.*;
 
 public class main {
     //main action menu
@@ -10,8 +11,8 @@ public class main {
         System.out.println("Type the number corresponding to the action you want to execute, followed by the ENTER key.");
         System.out.println("1. Add a Sequence"); //COMPLETE
         System.out.println("2. Remove a Sequence"); //COMPLETE
-        System.out.println("3. Single Sequence Toolkit"); //IN-PROGRESS
-        System.out.println("4. Multiple Sequences Toolkit"); //TO-DO
+        System.out.println("3. Single Sequence Toolkit"); //COMPLETE
+        System.out.println("4. Multiple Sequences Toolkit"); //COMPLETE
         System.out.println("--------------------");
 
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in), 1);
@@ -27,6 +28,7 @@ public class main {
                 singleSequenceUI(db);
             }
             else if (action == 4){
+                multipleSequenceUI(db);
             }
             else {
                 System.err.println("Invalid option selected. Please try again.");
@@ -115,8 +117,8 @@ public class main {
             System.out.println("2. Complementary Sequence");
             System.out.println("3. Sequence length and GC content");
             System.out.println("4. Count Subsequence"); 
-            System.out.println("5. Transcribe Coding Strand"); //TO-DO
-            System.out.println("6. Translate Coding Strand"); //TO-DO
+            System.out.println("5. Transcribe Coding Strand");
+            System.out.println("6. Translate Coding Strand");
             System.out.println("7. Return to main menu");
             System.out.println("--------------------");
     
@@ -143,7 +145,7 @@ public class main {
                     System.out.println(selectSeq.transcribe());
                 }
                 else if (action == 6){
-                    System.out.println("The translated sequence of your coding strand is:");
+                    System.out.println("The translated sequence (excluding stop codon) of your coding strand is:");
                     System.out.println(selectSeq.translate());
                 }
                 else if (action == 7){
@@ -160,6 +162,7 @@ public class main {
         }
     }
 
+    //UI for single sequence analysis - choosing a sequence to analyze
     public static Sequence chooseSequenceUI(SequencesDB db) throws java.io.IOException {
         if (db.getSequenceNames(false).length < 1){
             System.err.println("There are no sequences available to analyze. Please add a sequence first.");
@@ -179,6 +182,90 @@ public class main {
             }
         }
     }
+
+        //UI for multiple sequence comparisons
+        public static void multipleSequenceUI(SequencesDB db) throws java.io.IOException {
+            if (db.getSequenceNames(false).length < 2){
+                System.err.println("There are not enough sequences available for multi-sequence analysis. Please add at least 2 sequences first.");
+                return;
+            }
+
+            try{
+                System.out.println("---- Analyze Multiple Sequences ----");
+                System.out.println("Type the number corresponding to the action you want to execute, followed by the ENTER key.");
+                System.out.println("1. Side-by-side Sequence View");
+                System.out.println("2. Calculate Smith-Waterman Sequence Similarity Score");
+                System.out.println("3. All-vs-all Pairwise Smith-Waterman Score");
+                System.out.println("4. Return to main menu");
+                System.out.println("--------------------");
+        
+                BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in), 1);
+                try {
+                    int action = Integer.parseInt(stdin.readLine()); 
+                    if (action == 1){
+                        Sequence[] sequences = chooseMultipleSequenceUI(db);
+                        Sequence seq1 = sequences[0];
+                        Sequence seq2 = sequences[1];
+                        System.out.println(seq1.getSequence());
+                        System.out.println(seq2.getSequence());
+                    }
+                    else if (action == 2){
+                        Sequence[] sequences = chooseMultipleSequenceUI(db);
+                        double alignment_result = ComparativeToolkit.performAlignment(sequences[0].getSequence(), sequences[1].getSequence(), 3, -1, -1);
+                        System.out.println("The Smith-Waterman score is " + alignment_result);
+                    }
+                    else if (action == 3){
+                        String [] sequence_names = db.getSequenceNames(false);
+                        Sequence[] best_seq_pair_seqs = new Sequence[2];
+                        String[] best_seq_pair_names = new String[2];
+                        double best_score = Double.NEGATIVE_INFINITY;
+                        for (int i = 0; i < sequence_names.length; i++){
+                            Sequence seq1 = db.getSequence(sequence_names[i]);
+                            for (int j = i + 1; j < sequence_names.length; j++){
+                                Sequence seq2 = db.getSequence(sequence_names[j]);
+                                double alignment_result = ComparativeToolkit.performAlignment(seq1.getSequence(), seq2.getSequence(), 3, -1, -1);
+                                if (alignment_result > best_score){
+                                    best_score = alignment_result;
+                                    best_seq_pair_seqs = new Sequence[]{seq1, seq2};
+                                    best_seq_pair_names = new String[]{sequence_names[i], sequence_names[j]};
+                                }
+                            }
+                        }
+                        System.out.println("Most Similar Sequences: " + best_seq_pair_names[0] + " and " + best_seq_pair_names[1]);
+                        System.out.println("They have an alignment score of " + best_score);
+                        System.out.println(best_seq_pair_seqs[0].getSequence());
+                        System.out.println(best_seq_pair_seqs[1].getSequence());
+                    }
+                    else if (action == 4){
+                        return;
+                    }
+                    else {
+                        System.out.println("Invalid option selected. Please try again.");
+                    }
+                } catch(Exception e){
+                    System.out.println("Invalid option selected. Please try again.");
+                }
+            } catch (Exception e){
+                System.out.println("Error. Returning to main menu.");
+            }
+        }
+
+        //UI to choose two sequences from database to compare
+        public static Sequence[] chooseMultipleSequenceUI(SequencesDB db) throws java.io.IOException {
+            BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in), 1);
+            System.out.println("Type the numbers corresponding to the two DNA sequences you want to analyze, following each with ENTER key: ");
+            String [] seq_name_list = db.getSequenceNames(true);
+            try {
+                int seq1_index = Integer.parseInt(stdin.readLine()); 
+                String seq1_name = seq_name_list[seq1_index - 1];
+                int seq2_index = Integer.parseInt(stdin.readLine()); 
+                String seq2_name = seq_name_list[seq2_index - 1];
+                return new Sequence[]{db.getSequence(seq1_name), db.getSequence(seq2_name)};
+            } catch (Exception e){
+                System.err.println("Invalid option selection. Please try again.");
+                return null;
+            }
+        }
 
     public static void main(String[] argv) throws java.io.IOException {
         SequencesDB sequence_db = new SequencesDB();
