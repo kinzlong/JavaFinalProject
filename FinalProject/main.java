@@ -10,7 +10,7 @@ public class main {
         System.out.println("Type the number corresponding to the action you want to execute, followed by the ENTER key.");
         System.out.println("1. Add a Sequence"); //COMPLETE
         System.out.println("2. Remove a Sequence"); //COMPLETE
-        System.out.println("3. Single Sequence Toolkit"); //TO-DO
+        System.out.println("3. Single Sequence Toolkit"); //IN-PROGRESS
         System.out.println("4. Multiple Sequences Toolkit"); //TO-DO
         System.out.println("--------------------");
 
@@ -114,8 +114,10 @@ public class main {
             System.out.println("1. View Sequence");
             System.out.println("2. Complementary Sequence");
             System.out.println("3. Sequence length and GC content");
-            System.out.println("4. Count Subsequence"); //TO-DO, and any additional single-seq methods
-            System.out.println("5. Return to main menu");
+            System.out.println("4. Count Subsequence"); 
+            System.out.println("5. Transcribe Coding Strand"); //TO-DO
+            System.out.println("6. Translate Coding Strand"); //TO-DO
+            System.out.println("7. Return to main menu");
             System.out.println("--------------------");
     
             BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in), 1);
@@ -131,8 +133,20 @@ public class main {
                     selectSeq.getSummaryReport();
                 }
                 else if (action == 4){
+                    System.out.println("What subsequence do you want to count?");
+                    String subseq = stdin.readLine();
+                    int subseq_count = selectSeq.countSubsequence(subseq);
+                    System.out.println("Your sequence has "+ subseq_count + "occurences of " + subseq);
                 }
                 else if (action == 5){
+                    System.out.println("The 5'->3' mRNA sequence of your coding strand is:");
+                    System.out.println(selectSeq.transcribe());
+                }
+                else if (action == 6){
+                    System.out.println("The translated sequence of your coding strand is:");
+                    System.out.println(selectSeq.translate());
+                }
+                else if (action == 7){
                     return;
                 }
                 else {
